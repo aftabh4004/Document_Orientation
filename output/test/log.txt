@@ -1,0 +1,1 @@
+Epoch     train_loss     test_loss      precision      recall         f1_score       accracy        
