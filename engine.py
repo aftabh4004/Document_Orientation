@@ -4,7 +4,7 @@ from utils import get_confusion_matrix, get_precision_recall_f1
 import numpy as np
 
 
-def train_one_epoch(model, dataloder, optimizer, criterion, epoch):
+def train_one_epoch(model, dataloder, optimizer, criterion, epoch, args):
     
     model.train()
 
@@ -13,6 +13,9 @@ def train_one_epoch(model, dataloder, optimizer, criterion, epoch):
     count = 0
 
     for images, labels in bar:
+        images = images.to(args.device)
+        labels = labels.to(args.device)
+
         count += 1
         output = model(images)
 
@@ -33,23 +36,29 @@ def train_one_epoch(model, dataloder, optimizer, criterion, epoch):
 
 
 @torch.no_grad()
-def evaluate(model, dataloder, criterion, batch_size, num_classes):
+def evaluate(model, dataloder, criterion, args):
+    
     model.eval()
+    
     bar = tqdm(dataloder, desc=f'Test')
     total_loss = 0
     count = 0
-    all_predictions = np.array([], dtype=int)
-    all_labels = np.array([], dtype=int)
+    
+    all_predictions = torch.tensor([], device=args.device, dtype=int)
+    all_labels = torch.tensor([], device=args.device, dtype=int)
     correct_prediction = 0
 
     for images, labels in bar:
+        images = images.to(args.device)
+        labels = labels.to(args.device)
+
         count += 1
         output = model(images)
         
         _, prediction = output.max(dim = 1)
         
-        all_predictions = np.concatenate((all_predictions, prediction), axis = None)
-        all_labels = np.concatenate((all_labels, labels), axis = None)
+        all_predictions = torch.cat((all_predictions, prediction), 0)
+        all_labels = torch.cat((all_labels, labels), 0)
         
 
         correct_prediction += (prediction == labels).sum()
@@ -61,10 +70,10 @@ def evaluate(model, dataloder, criterion, batch_size, num_classes):
     
     total_loss /= count
     
-    accuracy = ((correct_prediction * 100) / (count * batch_size)).item()
+    accuracy = ((correct_prediction * 100) / (count * args.batch_size)).item()
 
 
-    cm = get_confusion_matrix(all_predictions, all_labels, num_classes)
+    cm = get_confusion_matrix(all_predictions.cpu(), all_labels.cpu(), args.num_classes)
     precision, recall, f1_score = get_precision_recall_f1(cm)
     
 

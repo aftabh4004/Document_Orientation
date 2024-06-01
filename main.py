@@ -23,6 +23,10 @@ def get_args_parser():
     return parser
 
 def main(args):
+
+    args.device = "cuda" if torch.cuda.is_available() else "cpu"
+    print("device: ", args.device)
+
     
     train_list = os.path.join(args.dataset_list_root, 'train.txt')
     test_list = os.path.join(args.dataset_list_root, 'test.txt')
@@ -41,8 +45,11 @@ def main(args):
     dataloder_test = DataLoader(dataset_test, batch_size = args.batch_size, shuffle=True)
 
     
-    model = DocumentOrientationModel(num_classes=args.num_classes)
+    model = DocumentOrientationModel(num_classes=args.num_classes).to(args.device)
     
+    print(model)
+    
+
     optimizer = Adam(lr = args.lr, params=model.parameters())
     criterion = CrossEntropyLoss()
 
@@ -54,8 +61,8 @@ def main(args):
 
     for epoch in range(args.epochs):
         
-        train_loss = train_one_epoch(model, dataloder_train, optimizer, criterion, epoch)
-        test_loss, accuracy, precision, recall, f1_score = evaluate(model, dataloder_test, criterion, args.batch_size, args.num_classes)
+        train_loss = train_one_epoch(model, dataloder_train, optimizer, criterion, epoch, args)
+        test_loss, accuracy, precision, recall, f1_score = evaluate(model, dataloder_test, criterion, args)
 
         logstr = f'{epoch:<10}{train_loss:<15.3f}{test_loss:<15.3f}{precision:<15.3f}{recall:<15.3f}{f1_score:<15.3f}{accuracy:<15.3f}'
 
