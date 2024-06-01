@@ -1,13 +1,17 @@
 import torch
 from torchvision import transforms
-from PIL import Image
+from model import DocumentOrientationModel
 
-best_model = 'output/img_size448_ep100bs32lr0.0003/best_model.pth'
 
 def inference(image):
-    model = torch.load(best_model)
+    best_model = 'best_model.pth'
+    model = DocumentOrientationModel(num_classes=8)
+    
+    checkpoint = torch.load(best_model, map_location='cpu')
+    model.load_state_dict(checkpoint)
+
     model.eval()
-    model = model.to("cuda")
+    
 
 
     transform  = transforms.Compose([
@@ -18,7 +22,7 @@ def inference(image):
 
 
     image = transform(image)
-    image = image.to("cuda")
+    image = image
     image = image.unsqueeze(dim=0)
     
     
@@ -38,11 +42,4 @@ def inference(image):
     # 360         7
     
     return 360 - (prediction * 45 + 45) % 360
-
-image_path = 'dataset/active/3418_68_225.jpg'
-image = Image.open(image_path)
-
-angle = inference(image=image)
-
-print(angle)
 

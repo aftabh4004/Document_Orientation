@@ -73,7 +73,7 @@ def main(args):
         max_acc = max(max_acc, accuracy)
 
         if accuracy == max_acc:
-            torch.save(model, os.path.join(args.output_dir, 'best_model.pth'))    
+            torch.save(model.state_dict(), os.path.join(args.output_dir, 'best_model.pth'))    
 
     
 if __name__ == "__main__":

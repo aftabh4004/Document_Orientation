@@ -1,16 +1,19 @@
 from fastapi import FastAPI, File, UploadFile, Form
+from inference import inference
+from PIL import Image
 
 app = FastAPI()
 
 
-@app.post('/file')
-def _file_upload(
+@app.post('/')
+def perdict_orientaion(
         my_file: UploadFile = File(...),
-        first: str = Form(...),
-        second: str = Form("default value  for second"),
 ):
+    image = Image.open(my_file.file)
+    image = image.convert('RGB')
+    result = inference(image)
+
     return {
-        "name": my_file.filename,
-        "first": first,
-        "second": second
+        "filename": my_file.filename,
+        "orientation": f'{result} degree clockwise'
     }
