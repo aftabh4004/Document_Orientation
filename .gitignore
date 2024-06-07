@@ -2,3 +2,4 @@ __pycache__
 API/__pycache__
 API/*.pth
 output/**/*.pth
+Triton/**/**/**/*.pt
